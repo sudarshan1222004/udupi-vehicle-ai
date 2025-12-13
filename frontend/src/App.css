@@ -1,0 +1,67 @@
+/* Add these styles to the bottom of your App.css */
+
+.inputs-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: #f3f4f6;
+  border-radius: 12px;
+  padding: 10px;
+  position: relative;
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 5px;
+}
+
+.input-wrapper input {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 1rem;
+  margin-left: 10px;
+}
+
+.dot { width: 8px; height: 8px; border-radius: 50%; }
+.dot.green { background: #10b981; }
+.dot.red { background: #ef4444; }
+
+.search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: white;
+  z-index: 500;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.search-item {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.search-item:hover { background: #f9f9f9; }
+.main-text { font-weight: 600; font-size: 0.9rem; }
+.sub-text { font-size: 0.75rem; color: #666; }
+
+.connector-line {
+  position: absolute;
+  left: 24px;
+  top: 40px;
+  bottom: 40px;
+  width: 2px;
+  background: #ddd;
+  z-index: 0;
+}
