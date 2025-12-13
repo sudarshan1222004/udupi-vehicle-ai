@@ -1,67 +1,147 @@
-/* Add these styles to the bottom of your App.css */
-
-.inputs-container {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  background: #f3f4f6;
-  border-radius: 12px;
-  padding: 10px;
-  position: relative;
-}
-
-.input-wrapper {
-  display: flex;
-  align-items: center;
-  background: white;
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 5px;
-}
-
-.input-wrapper input {
-  border: none;
-  outline: none;
+/* --- GLOBAL RESET --- */
+html, body, #root {
+  height: 100%;
   width: 100%;
-  font-size: 1rem;
-  margin-left: 10px;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  overflow: hidden;
+  color: #1f2937;
 }
 
-.dot { width: 8px; height: 8px; border-radius: 50%; }
-.dot.green { background: #10b981; }
-.dot.red { background: #ef4444; }
+/* --- LAYOUT --- */
+.app-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
 
-.search-results {
+.map-layer {
   position: absolute;
-  top: 100%;
+  top: 0;
   left: 0;
   width: 100%;
-  background: white;
-  z-index: 500;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-  max-height: 200px;
-  overflow-y: auto;
+  height: 100%;
+  z-index: 1;
 }
 
-.search-item {
-  padding: 12px;
-  border-bottom: 1px solid #eee;
+/* --- SIDEBAR PANEL --- */
+.booking-panel {
+  position: relative;
+  z-index: 100;
+  width: 400px;
+  height: 95%;
+  margin: 10px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panel-header {
+  background: black;
+  color: white;
+  padding: 15px 20px;
+}
+.panel-header h1 { margin: 0; font-size: 1.2rem; }
+
+.panel-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- INPUTS --- */
+.input-group {
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.location-input-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  cursor: pointer;
+  padding: 10px;
+  background: white;
+  margin-bottom: 4px;
+  border-radius: 6px;
+  border: 1px solid transparent;
 }
-.search-item:hover { background: #f9f9f9; }
-.main-text { font-weight: 600; font-size: 0.9rem; }
-.sub-text { font-size: 0.75rem; color: #666; }
+.location-input-row.active { border-color: black; }
 
-.connector-line {
-  position: absolute;
-  left: 24px;
-  top: 40px;
-  bottom: 40px;
-  width: 2px;
-  background: #ddd;
-  z-index: 0;
+.input-text { flex: 1; display: flex; flex-direction: column; }
+.label { font-size: 0.7rem; font-weight: 700; color: #6b7280; text-transform: uppercase; margin-bottom: 2px; }
+
+/* --- RIDE LIST --- */
+.rides-list h3 { font-size: 1rem; color: #4b5563; margin-top: 0; }
+.ride-card {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px;
+  margin-bottom: 8px; cursor: pointer; transition: all 0.2s; background: white;
 }
+.ride-card:hover { border-color: black; background: #f9fafb; }
+.ride-card.selected { border: 2px solid black; background: #f0fdf4; }
+.vehicle-img { width: 48px; height: 48px; object-fit: contain; }
+.ride-details h4 { margin: 0; font-size: 1rem; color: black; }
+.ride-details p { margin: 0; font-size: 0.8rem; color: #6b7280; }
+.price { font-weight: 700; font-size: 1.1rem; color: black; }
+
+/* --- SEARCH ANIMATION --- */
+.searching-view {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center;
+}
+.pulse-ring {
+  width: 60px; height: 60px; border-radius: 50%; border: 4px solid #10b981;
+  animation: pulse 1.5s infinite; margin-bottom: 20px;
+}
+@keyframes pulse {
+  0% { transform: scale(0.8); opacity: 0.8; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+/* --- DRIVER SCREEN --- */
+.success-view { animation: fadeIn 0.3s ease; }
+.driver-card {
+  background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px;
+  border-radius: 8px; display: flex; align-items: center; gap: 15px; margin: 15px 0;
+}
+.driver-avatar {
+  width: 40px; height: 40px; background: #cbd5e1; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.eta-badge {
+  background: #10b981; color: white; padding: 4px 10px; border-radius: 12px;
+  font-size: 0.8rem; font-weight: 700; margin-left: auto;
+}
+.eta-badge.arrived { background: black; }
+
+/* OTP BOX (New) */
+.otp-box {
+  background: #fffbeb; border: 2px dashed #f59e0b;
+  color: #b45309; padding: 10px; text-align: center;
+  border-radius: 8px; font-weight: 700; font-size: 1.2rem;
+  margin-bottom: 15px; letter-spacing: 2px;
+}
+
+/* Tip & Actions */
+.tip-section { margin-top: 15px; }
+.tip-options { display: flex; gap: 8px; margin-top: 8px; }
+.tip-btn {
+  flex: 1; padding: 8px; background: white; border: 1px solid #d1d5db;
+  border-radius: 6px; cursor: pointer; font-weight: 600; color: black;
+}
+.tip-btn.active { background: black; color: white; border-color: black; }
+.action-btn {
+  width: 100%; padding: 14px; background: black; color: white;
+  border: none; border-radius: 8px; font-weight: 600; font-size: 1rem;
+  cursor: pointer; margin-top: auto;
+}
+.action-btn:disabled { background: #9ca3af; cursor: not-allowed; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
