@@ -1,4 +1,5 @@
-```markdown
+Markdown
+
 # AI-Driven Vehicle Matching and Pricing System
 
 An intelligent ride-hailing platform featuring AI-based ETA prediction, dynamic pricing, and real-time routing.
@@ -38,48 +39,40 @@ python train_model.py
 
 # Step B: Start the API Server
 uvicorn main:app --reload
-
-```
-
 The server will start at https://www.google.com/search?q=http://127.0.0.1:8000
 
-###2. Running TestsTo verify data integrity and model performance:
+2. Running Tests
+To verify data integrity and model performance (use these files from our final checklist):
 
-```bash
+Bash
+
 # In backend terminal
-python test_project.py
-python evaluate_model.py
+pytest
+python evaluate_plots.py
+3. Frontend Setup (The User App)
+Open a new terminal in the frontend folder:
 
-```
+Bash
 
-###3. Frontend Setup (The User App)Open a new terminal in the frontend folder:
-
-```bash
 cd frontend
 npm install
 npm run dev
-
-```
-
 Open the link shown (e.g., http://localhost:5173) to launch the app.
 
----
+How to Use
+Select Locations: Click on the map to set Pickup (Green) and Drop (Red) points, or use the search bar.
 
-##How to Use1. Select Locations: Click on the map to set Pickup (Green) and Drop (Red) points.
-2. View Route: The app calculates the actual road path (Blue Line). (Note: If the public OSRM server is busy, it automatically falls back to a straight-line path and alerts the user.)
-3. Choose Vehicle: View AI-predicted prices and ETAs for Auto, Bike, or Car.
-4. Book Ride: Click "Book". The system simulates a driver finding you and arriving with an OTP.
+View Route: The app calculates the actual road path (Blue Line). (Note: If the public OSRM server is busy, it automatically falls back to a straight-line path and alerts the user.)
 
----
+Choose Vehicle: View AI-predicted prices and ETAs for Auto, Bike, or Car.
 
-##Model Performance* Algorithm: Random Forest Regressor
-* Metrics: R2 Score > 0.90, MAE < 2.0 mins.
-* Artifacts: Trained model saved as eta_model.pkl.
+Book Ride: Click "Book". The system simulates a driver finding you and arriving with an OTP and real-time movement on the map.
 
----
+Model Performance
+Algorithm: Random Forest Regressor
+
+Metrics: R2 Score > 0.90, MAE < 2.0 mins.
+
+Artifacts: Trained model saved as eta_model.pkl.
 
 Author: Sudarshan
-
-```
-
-```
