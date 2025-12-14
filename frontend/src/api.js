@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// 1. SEARCH LOCATION (This was missing!)
+// 1. SEARCH LOCATION
 export const searchLocation = async (query) => {
   if (!query || query.length < 3) return [];
   try {
@@ -25,7 +25,6 @@ export const reverseGeocode = async (lat, lng) => {
     const res = await axios.get(`https://nominatim.openstreetmap.org/reverse`, {
       params: { lat, lon: lng, format: 'json' }
     });
-    // Safety check if display_name exists
     const displayName = res.data.display_name || "Unknown Location";
     const shortName = displayName.split(',')[0];
     return { name: shortName, full_name: displayName };
@@ -34,25 +33,29 @@ export const reverseGeocode = async (lat, lng) => {
   }
 };
 
-// 3. GET ROAD ROUTE (OSRM)
+// 3. GET ROAD ROUTE (OSRM) WITH WARNING POPUP
 export const getRoadRoute = async (start, end) => {
   try {
     const url = `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson`;
     
-    // Set a timeout so we don't wait forever
+    // Set a timeout so we don't wait forever (5 seconds)
     const res = await axios.get(url, { timeout: 5000 });
     
     if (!res.data.routes || res.data.routes.length === 0) throw new Error("No route");
 
     const route = res.data.routes[0];
     return {
-      coordinates: route.geometry.coordinates.map(c => [c[1], c[0]]), // Flip [lng,lat] to [lat,lng] for Leaflet
+      coordinates: route.geometry.coordinates.map(c => [c[1], c[0]]), // Flip for Leaflet
       distance_km: (route.distance / 1000).toFixed(2),
       duration_min: (route.duration / 60).toFixed(0)
     };
   } catch (err) {
-    console.warn("OSRM Failed or timed out, using fallback straight line.");
+    console.warn("OSRM Failed or timed out, using fallback.");
     
+    // --- VISUAL WARNING FOR USER ---
+    alert("⚠️ Map Routing Server is busy! Switching to straight-line mode."); 
+    // -------------------------------
+
     // Fallback: Calculate straight line distance
     const dist = getStraightLineDistance(start.lat, start.lng, end.lat, end.lng);
     return {
