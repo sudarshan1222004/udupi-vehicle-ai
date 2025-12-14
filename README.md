@@ -1,5 +1,3 @@
-Markdown
-
 # AI-Driven Vehicle Matching and Pricing System
 
 An intelligent ride-hailing platform featuring AI-based ETA prediction, dynamic pricing, and real-time routing.
