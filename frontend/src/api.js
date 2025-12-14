@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// 1. SEARCH ADDRESS (Forward Geocoding)
+// 1. SEARCH ADDRESS
 export const searchLocation = async (query) => {
   if (!query || query.length < 3) return [];
   try {
@@ -19,28 +19,39 @@ export const searchLocation = async (query) => {
   }
 };
 
-// 2. GET ADDRESS FROM COORDINATES (Reverse Geocoding) <-- NEW FEATURE
+// 2. REVERSE GEOCODING
 export const reverseGeocode = async (lat, lng) => {
   try {
     const res = await axios.get(`https://nominatim.openstreetmap.org/reverse`, {
       params: { lat, lon: lng, format: 'json' }
     });
-    // Return a short, readable name (e.g., "KMC Hospital, Manipal")
     const shortName = res.data.display_name.split(',')[0]; 
     return { name: shortName, full_name: res.data.display_name };
   } catch (err) {
-    console.error("Reverse Geocode Error:", err);
     return { name: "Pinned Location", full_name: "Unknown Location" };
   }
 };
 
-// 3. GET ROAD PATH (Blue Line)
+// --- HELPER: Calculate Straight Line Distance (Haversine Formula) ---
+const getStraightLineDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371; // Radius of the earth in km
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2); 
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); 
+  return (R * c).toFixed(2); // Distance in km
+};
+
+// 3. GET ROAD PATH (With Fallback)
 export const getRoadRoute = async (start, end) => {
   try {
+    // Try OSRM (Real Road Path)
     const url = `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson`;
     const res = await axios.get(url);
     
-    if (!res.data.routes || res.data.routes.length === 0) return null;
+    if (!res.data.routes || res.data.routes.length === 0) throw new Error("No route found");
 
     const route = res.data.routes[0];
     return {
@@ -49,8 +60,15 @@ export const getRoadRoute = async (start, end) => {
       duration_min: (route.duration / 60).toFixed(0)
     };
   } catch (err) {
-    console.error("Routing Error:", err);
-    return null;
+    console.warn("OSRM Failed, using fallback straight line:", err);
+    
+    // FALLBACK: Return a straight line so the app doesn't break
+    const dist = getStraightLineDistance(start.lat, start.lng, end.lat, end.lng);
+    return {
+      coordinates: [[start.lat, start.lng], [end.lat, end.lng]], // Straight line
+      distance_km: dist,
+      duration_min: (dist * 2).toFixed(0) // Rough guess: 2 mins per km
+    };
   }
 };
 
@@ -67,6 +85,7 @@ export const getPricePrediction = async (pickup, drop, distance) => {
     return res.data;
   } catch (err) {
     console.error("Backend Error:", err);
+    alert("Backend is not running! Please run 'uvicorn main:app --reload'");
     return null;
   }
 };

@@ -14,34 +14,40 @@ import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 let DefaultIcon = L.icon({ iconUrl: icon, shadowUrl: iconShadow, iconSize: [25, 41], iconAnchor: [12, 41] });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-// 2. Define Moving Vehicle Icons (Car, Auto, Bike)
+// 2. STABLE ICON URLs (Icons8 CDN - guaranteed to load)
 const IconSize = [48, 48];
 const IconAnchor = [24, 24];
 
-const carIcon = new L.Icon({ iconUrl: 'https://img.icons8.com/fluency/48/sedan.png', iconSize: IconSize, iconAnchor: IconAnchor });
-const autoIcon = new L.Icon({ iconUrl: 'https://img.icons8.com/fluency/48/tuk-tuk.png', iconSize: IconSize, iconAnchor: IconAnchor });
-const bikeIcon = new L.Icon({ iconUrl: 'https://img.icons8.com/fluency/48/motorcycle.png', iconSize: IconSize, iconAnchor: IconAnchor });
+const carUrl = 'https://img.icons8.com/fluency/48/sedan.png';
+const autoUrl = 'https://img.icons8.com/fluency/48/tuk-tuk.png'; 
+const bikeUrl = 'https://img.icons8.com/fluency/48/motorcycle.png';
 
-// 3. Helper to get Icon URL for the List
+const carIcon = new L.Icon({ iconUrl: carUrl, iconSize: IconSize, iconAnchor: IconAnchor });
+const autoIcon = new L.Icon({ iconUrl: autoUrl, iconSize: IconSize, iconAnchor: IconAnchor });
+const bikeIcon = new L.Icon({ iconUrl: bikeUrl, iconSize: IconSize, iconAnchor: IconAnchor });
+
+// 3. Helper: Get Menu Image
 const getVehicleImgUrl = (type) => {
-  if (type.includes('Auto')) return 'https://img.icons8.com/fluency/48/tuk-tuk.png';
-  if (type.includes('Bike') || type.includes('Honda')) return 'https://img.icons8.com/fluency/48/motorcycle.png';
-  return 'https://img.icons8.com/fluency/48/sedan.png'; // Default to Car
+  const t = type.toLowerCase();
+  if (t.includes('auto')) return autoUrl;
+  if (t.includes('bike') || t.includes('honda') || t.includes('activa')) return bikeUrl;
+  return carUrl;
 };
 
-// 4. Helper to get Map Marker for the Driver
+// 4. Helper: Get Map Marker
 const getDriverIcon = (vehicleName) => {
   if (!vehicleName) return carIcon;
-  if (vehicleName.includes('Auto')) return autoIcon;
-  if (vehicleName.includes('Activa') || vehicleName.includes('Bike')) return bikeIcon;
+  const t = vehicleName.toLowerCase();
+  if (t.includes('auto')) return autoIcon;
+  if (t.includes('activa') || t.includes('bike')) return bikeIcon;
   return carIcon;
 };
 
 const DUMMY_DRIVERS = [
   { name: "Ramesh Shetty", plate: "KA 20 AB 1234", vehicle: "Toyota Etios" },
   { name: "Suresh Naik", plate: "KA 19 MD 9988", vehicle: "Suzuki Swift" },
-  { name: "Abdul Razzak", plate: "KA 20 Z 5544", vehicle: "Bajaj Auto" }, // Will show Auto Icon
-  { name: "Ganesh Acharya", plate: "KA 20 M 7766", vehicle: "Honda Activa" }, // Will show Bike Icon
+  { name: "Abdul Razzak", plate: "KA 20 Z 5544", vehicle: "Bajaj Auto" }, // Auto Icon
+  { name: "Ganesh Acharya", plate: "KA 20 M 7766", vehicle: "Honda Activa" }, // Bike Icon
 ];
 
 function MapRecenter({ pickup, drop, driverLoc }) {
@@ -50,7 +56,7 @@ function MapRecenter({ pickup, drop, driverLoc }) {
     if (pickup && drop) {
       const bounds = L.latLngBounds([pickup, drop]);
       if (driverLoc) bounds.extend(driverLoc);
-      map.fitBounds(bounds, { padding: [80, 80] }); // Increased padding for better view
+      map.fitBounds(bounds, { padding: [80, 80] }); 
     } else if (pickup) {
       map.flyTo(pickup, 14);
     }
@@ -112,32 +118,29 @@ function App() {
     setDriverLocation(null);
     setOtp(Math.floor(1000 + Math.random() * 9000));
 
-    // 1. FILTER DRIVERS BASED ON SELECTION
-    // If user selected Auto, try to find an Auto driver, else pick random
+    // FILTER DRIVERS
     let eligibleDrivers = DUMMY_DRIVERS;
-    if (selectedRide.vehicle === 'Auto') {
-        eligibleDrivers = DUMMY_DRIVERS.filter(d => d.vehicle.includes('Auto'));
-    } else if (selectedRide.vehicle === 'Bike') {
-        eligibleDrivers = DUMMY_DRIVERS.filter(d => d.vehicle.includes('Activa'));
+    const vType = selectedRide.vehicle.toLowerCase();
+    
+    if (vType.includes('auto')) {
+        eligibleDrivers = DUMMY_DRIVERS.filter(d => d.vehicle.toLowerCase().includes('auto'));
+    } else if (vType.includes('bike')) {
+        eligibleDrivers = DUMMY_DRIVERS.filter(d => d.vehicle.toLowerCase().includes('activa'));
     } else {
-        eligibleDrivers = DUMMY_DRIVERS.filter(d => !d.vehicle.includes('Auto') && !d.vehicle.includes('Activa'));
+        eligibleDrivers = DUMMY_DRIVERS.filter(d => !d.vehicle.toLowerCase().includes('auto') && !d.vehicle.toLowerCase().includes('activa'));
     }
     
-    // Fallback to any driver if filter is empty (just in case)
     if (eligibleDrivers.length === 0) eligibleDrivers = DUMMY_DRIVERS;
 
-    // 2. DELAY (4 Seconds)
     setTimeout(async () => {
       const randomDriver = eligibleDrivers[Math.floor(Math.random() * eligibleDrivers.length)];
       setDriver(randomDriver);
 
-      // Driver Start Position
       const offsetLat = (Math.random() - 0.5) * 0.015; 
       const offsetLng = (Math.random() - 0.5) * 0.015;
       const driverStart = { lat: pickup.lat + offsetLat, lng: pickup.lng + offsetLng };
       setDriverLocation(driverStart);
 
-      // Calculate Path
       const pathToPickup = await getRoadRoute(driverStart, pickup);
       if (pathToPickup) {
         setDriverPath(pathToPickup.coordinates);
@@ -154,7 +157,7 @@ function App() {
   const animateDriver = (pathCoords) => {
     let index = 0;
     const totalPoints = pathCoords.length;
-    const animationDuration = 10000; // 10 seconds drive
+    const animationDuration = 10000;
     const stepDelay = animationDuration / totalPoints;
 
     const interval = setInterval(() => {
@@ -221,7 +224,7 @@ function App() {
                   {rides.map(ride => (
                     <div key={ride.vehicle} className={`ride-card ${selectedRide?.vehicle === ride.vehicle ? 'selected' : ''}`} onClick={() => setSelectedRide(ride)}>
                       <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
-                        {/* ROBUST ICON LOGIC */}
+                        {/* ICON FIX HERE */}
                         <img src={getVehicleImgUrl(ride.vehicle)} alt={ride.vehicle} className="vehicle-img"/>
                         <div className="ride-details">
                           <h4>{ride.vehicle}</h4>
@@ -304,7 +307,6 @@ function App() {
           {drop && <Marker position={drop}><Popup>Drop</Popup></Marker>}
           
           {driverLocation && (
-             // DYNAMIC DRIVER ICON (Auto shows Auto, Car shows Car)
              <Marker position={driverLocation} icon={getDriverIcon(driver?.vehicle)}>
                 <Popup>Your Driver</Popup>
              </Marker>
