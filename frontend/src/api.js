@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// 1. SEARCH ADDRESS
+// 1. SEARCH LOCATION (This was missing!)
 export const searchLocation = async (query) => {
   if (!query || query.length < 3) return [];
   try {
@@ -19,65 +19,51 @@ export const searchLocation = async (query) => {
   }
 };
 
-// 2. REVERSE GEOCODING
+// 2. REVERSE GEOCODE (Lat/Lng -> Address Name)
 export const reverseGeocode = async (lat, lng) => {
   try {
     const res = await axios.get(`https://nominatim.openstreetmap.org/reverse`, {
       params: { lat, lon: lng, format: 'json' }
     });
-    const shortName = res.data.display_name.split(',')[0]; 
-    return { name: shortName, full_name: res.data.display_name };
+    // Safety check if display_name exists
+    const displayName = res.data.display_name || "Unknown Location";
+    const shortName = displayName.split(',')[0];
+    return { name: shortName, full_name: displayName };
   } catch (err) {
     return { name: "Pinned Location", full_name: "Unknown Location" };
   }
 };
 
-// --- HELPER: Straight Line Distance ---
-const getStraightLineDistance = (lat1, lon1, lat2, lon2) => {
-  const R = 6371; 
-  const dLat = (lat2 - lat1) * (Math.PI / 180);
-  const dLon = (lon2 - lon1) * (Math.PI / 180);
-  const a = 
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2); 
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); 
-  return (R * c).toFixed(2); 
-};
-
-// 3. GET ROAD PATH (With User Alert on Fail)
+// 3. GET ROAD ROUTE (OSRM)
 export const getRoadRoute = async (start, end) => {
   try {
-    // Standard Global OSRM Server
     const url = `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson`;
     
-    // 8 Second Timeout
-    const res = await axios.get(url, { timeout: 8000 });
+    // Set a timeout so we don't wait forever
+    const res = await axios.get(url, { timeout: 5000 });
     
-    if (!res.data.routes || res.data.routes.length === 0) throw new Error("No route found");
+    if (!res.data.routes || res.data.routes.length === 0) throw new Error("No route");
 
     const route = res.data.routes[0];
     return {
-      coordinates: route.geometry.coordinates.map(c => [c[1], c[0]]), 
+      coordinates: route.geometry.coordinates.map(c => [c[1], c[0]]), // Flip [lng,lat] to [lat,lng] for Leaflet
       distance_km: (route.distance / 1000).toFixed(2),
       duration_min: (route.duration / 60).toFixed(0)
     };
   } catch (err) {
-    console.warn("Global OSRM Server is busy. Using fallback.");
+    console.warn("OSRM Failed or timed out, using fallback straight line.");
     
-    // ⚠️ NEW: POPUP ALERT FOR USER ⚠️
-    alert("⚠️ Note: The free map server is busy. Showing a straight-line path instead.");
-
-    // Fallback straight line
+    // Fallback: Calculate straight line distance
     const dist = getStraightLineDistance(start.lat, start.lng, end.lat, end.lng);
     return {
-      coordinates: [[start.lat, start.lng], [end.lat, end.lng]], 
+      coordinates: [[start.lat, start.lng], [end.lat, end.lng]],
       distance_km: dist,
-      duration_min: (dist * 2).toFixed(0) 
+      duration_min: (dist * 2).toFixed(0) // Rough estimate
     };
   }
 };
 
-// 4. GET PRICE FROM BACKEND
+// 4. GET AI PRICE PREDICTION
 export const getPricePrediction = async (pickup, drop, distance) => {
   try {
     const res = await axios.post('http://127.0.0.1:8000/predict_ride', {
@@ -85,12 +71,24 @@ export const getPricePrediction = async (pickup, drop, distance) => {
       start_lon: pickup.lng,
       end_lat: drop.lat,
       end_lon: drop.lng,
-      road_distance: parseFloat(distance) 
+      road_distance: parseFloat(distance)
     });
     return res.data;
   } catch (err) {
     console.error("Backend Error:", err);
-    alert("Backend is not running! Please run 'uvicorn main:app --reload'");
+    alert("Backend is offline! Please run: uvicorn main:app --reload");
     return null;
   }
+};
+
+// HELPER: Haversine Formula for Straight Line Distance
+const getStraightLineDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371; // Earth Radius in km
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return (R * c).toFixed(2);
 };
