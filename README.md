@@ -1,76 +1,112 @@
-# AI-Driven Vehicle Matching and Pricing System
+---
 
-An intelligent ride-hailing platform featuring AI-based ETA prediction, dynamic pricing, and real-time routing.
-Submission for UNLOADIN AI/ML Engineering Internship.
+#🚀 AI-Driven Ride-Hailing PlatformAn intelligent, full-stack application simulating a real-world mobility system with AI-based pricing, ETA prediction, and real-time routing.
+
+**Submission for UNLOADIN AI/ML Engineering Internship.**
 
 ---
 
-## Project Overview
-This full-stack application simulates a real-world mobility market. It matches users with vehicles based on:
-1. AI ETA Prediction: A Random Forest model (trained on 5,000+ synthetic rides) predicts trip duration based on traffic and time of day.
-2. Dynamic Pricing: Implements surge pricing logic (1.4x multiplier) during rush hours (9-11 AM and 5-8 PM).
-3. Smart Routing: Uses OSRM (Open Source Routing Machine) to calculate real road paths and distances.
-4. Vehicle Ranking: Automatically ranks options (Auto, Bike, Car) by price and estimated time.
-5. Fault Tolerance: Includes a fallback mechanism to switch to straight-line distance if the routing server is busy.
+##✨ Project Highlights (Why it's Smart)This platform simulates a real-world ride-hailing service with intelligent features:
+
+* **Smart Pricing & ETA:** Predicts trip duration (ETA) and calculates dynamic prices using a trained **Random Forest AI model**. Prices surge (1.4x) during peak traffic hours (9-11 AM and 5-8 PM).
+* **Real-Time Mapping:** Uses **Leaflet Maps** and **OSRM** (Open Source Routing Machine) to calculate and display the **actual road path** between locations (the Blue Line).
+* **Fault Tolerance:** Automatically switches to a simple straight-line distance fallback if the external OSRM routing server is unavailable.
+* **Full Ride Simulation:** Simulates driver assignment, real-time vehicle movement to the pickup point, and OTP generation for the final booking flow.
 
 ---
 
-## Tech Stack
-- Frontend: React.js, Vite, Leaflet Maps, Axios
-- Backend: FastAPI (Python), Uvicorn
-- Machine Learning: Scikit-Learn (Random Forest), Pandas, NumPy
-- Data Source: Synthetic dataset simulating Udupi city traffic patterns.
+##🛠️ Tech Stack| Component | Key Technology | Purpose |
+| --- | --- | --- |
+| **Frontend** | React.js, Vite, Leaflet Maps, Axios | User Interface, Map Visualization |
+| **Backend API** | **FastAPI** (Python), Uvicorn | High-speed API for pricing and ETA prediction |
+| **AI/ML** | Scikit-Learn (Random Forest), Pandas | Model training and serving |
+| **Data** | Synthetic Dataset (Udupi City) | Data source for training the Random Forest model |
 
 ---
 
-## Setup and Run Instructions
+##⚙️ Setup and Run InstructionsFollow these steps to get both the Backend API (the Brain) and the Frontend App (the Interface) running.
 
-### 1. Backend Setup (The AI Brain)
-Open a terminal in the backend folder:
+###1. Backend Setup (API Server)The backend handles the pricing logic and AI predictions.
+
+1. **Navigate to the Root Directory:**
 ```bash
-cd backend
+cd udupi-vehicle-ai
+
+```
+
+
+2. **Activate Virtual Environment (Crucial Step):**
+```bash
+.\venv\Scripts\activate
+
+```
+
+
+3. **Install Python Dependencies:**
+```bash
 pip install -r requirements.txt
 
-# Step A: Generate Synthetic Data and Train Model
+```
+
+
+4. **Train the AI Model (Run these only once):**
+```bash
+# Generate Synthetic Data
 python generate_data.py
-python train_model.py
 
-# Step B: Start the API Server
-uvicorn main:app --reload
-The server will start at https://www.google.com/search?q=http://127.0.0.1:8000
+# Train the Model and save eta_model.pkl
+python train_model.py 
 
-2. Running Tests
-To verify data integrity and model performance (use these files from our final checklist):
+```
 
-Bash
 
-# In backend terminal
-pytest
-python evaluate_plots.py
-3. Frontend Setup (The User App)
-Open a new terminal in the frontend folder:
+5. **Start the API Server:**
+```bash
+# Run Uvicorn from the ROOT directory
+uvicorn backend.main:app --reload
 
-Bash
+```
 
+
+*The server will start at `http://127.0.0.1:8000`. Keep this terminal window open.*
+
+###2. Frontend Setup (User Interface)The frontend hosts the map and the booking panel.
+
+1. **Open a NEW Terminal** and navigate to the frontend folder:
+```bash
 cd frontend
+
+```
+
+
+2. **Install Node Dependencies:**
+```bash
 npm install
+
+```
+
+
+3. **Start the Web Application:**
+```bash
 npm run dev
-Open the link shown (e.g., http://localhost:5173) to launch the app.
 
-How to Use
-Select Locations: Click on the map to set Pickup (Green) and Drop (Red) points, or use the search bar.
+```
 
-View Route: The app calculates the actual road path (Blue Line). (Note: If the public OSRM server is busy, it automatically falls back to a straight-line path and alerts the user.)
 
-Choose Vehicle: View AI-predicted prices and ETAs for Auto, Bike, or Car.
+*Open the link shown (e.g., `http://localhost:5173`) to launch the app.*
 
-Book Ride: Click "Book". The system simulates a driver finding you and arriving with an OTP and real-time movement on the map.
+---
 
-Model Performance
-Algorithm: Random Forest Regressor
+##🗺️ How to Use the Application| Step | Action | Result |
+| --- | --- | --- |
+| **1. Set Locations** | Click anywhere on the map to set the Pickup (Green) and Drop (Red) points. | The application draws the blue route path and calls the backend for pricing. |
+| **2. Choose Ride** | View the list of predicted options (Bike, Auto, Sedan, etc.) with the dynamic price and ETA. | Select your preferred vehicle option. |
+| **3. Book Ride** | Click the "Book" button. | The system simulates a driver being found, displays the driver's vehicle moving to your location, and shows an OTP upon arrival. |
 
-Metrics: R2 Score > 0.90, MAE < 2.0 mins.
+---
 
-Artifacts: Trained model saved as eta_model.pkl.
-
-Author: Sudarshan
+##📊 Model Performance| Metric | Value | Interpretation |
+| --- | --- | --- |
+| **Algorithm** | Random Forest Regressor | High-accuracy, non-linear prediction model. |
+| **R2 Score** | > 0.90 | Over 90% of the variance in trip time is explained by the model's features. |
+| **MAE** | < 2.0 minutes | The predicted trip time is typically off by less than 2 minutes. |
