@@ -1,4 +1,4 @@
-# 🚖 Udupi AI-Driven Vehicle Matching & Dynamic Pricing System
+# 🚖AI-Driven Vehicle Matching & Dynamic Pricing System (for Udupi/Manipal)
 
 An end-to-end mobility solution featuring a **Vite + React** frontend, a **FastAPI** backend, and a **Random Forest ML** model. This project predicts ETA and implements surge pricing for the **Udupi/Manipal** region, specifically developed for the **UNLOADIN** AI/ML Engineering Internship.
 
@@ -11,7 +11,7 @@ The system is designed as a decoupled full-stack application to simulate a produ
 ### 1. AI/ML Backend (Python)
 The backend handles the data science and core decision logic:
 * **Data Pipeline (`generate_data.py`)**: Uses **Pandas** and **NumPy** to create a 10,000-sample mobility dataset with geo-coordinate boundaries specifically for the **Udupi-Manipal** region.
-* **Model Training (`train_model.py`)**: Utilizes **Scikit-learn** to train a **Random Forest Regressor** to predict ETA based on trip distance, hour of the day, vehicle type, and temporal features.
+* **Model Training (`train_model.py`)**: Utilizes **Scikit-learn** to train a **Random Forest Regressor** to predict ETA based on trip distance, hour of the day and vehicle type.
 * **Ranking Engine (`ranking_engine.py`)**: The "Brain" of the app. It calculates dynamic surge pricing (1.45x) during Udupi rush hours (9–11 AM and 5–9 PM) and ranks vehicles based on user preferences: **Cheapest**, **Fastest**, or **Balanced**.
 * **API Service (`main.py`)**: Dedicated FastAPI service running on **Port 8001** to serve the production React frontend.
 * **Admin Console (`app.py`)**: A separate FastAPI service on **Port 8000** for manual logic testing and developer verification.
@@ -23,9 +23,9 @@ Professional testing is integrated to satisfy the "test inference performance" a
     * **Accuracy Scatter Plot**: Visualizes Actual vs. Predicted ETA.
     * **Feature Importance**: Proves how `trip_distance` and `hour_of_day` drive the AI’s decisions.
 
-### 3. Intelligent Frontend (Vite + React)
-A premium, dark-themed responsive user interface featuring a modern "Glassmorphism" aesthetic:
-* **Sidebar Controls**: Features pickup and drop-off inputs with a "Current Location" GPS trigger. All selected location names appear in high-contrast white for clarity.
+### 3. Intelligent Frontend (Vite + React)[still under developmnt]
+A premium, dark-themed responsive user interface :
+* **Sidebar Controls**: Features pickup and drop-off inputs with a "Current Location" GPS trigger. All selected location names appear clearly.
 * **Interactive Map**: Built with **Leaflet**, allowing users to set points by clicking the map. It renders a real-road "Blue Line" route using OSRM data.
 * **Live Simulation**: Upon confirmation, a taxi marker physically animates toward the pickup point, accompanied by a dynamic **OTP generator** and a **Driver Tip** section.
 * **Real-time Engine**: Fetches live data from the FastAPI server on Port 8001, displaying predicted ETA, fare, and surge status.
@@ -36,25 +36,38 @@ A premium, dark-themed responsive user interface featuring a modern "Glassmorphi
 
 ### Backend & Logic Setup
 ```bash
+
 # Install Python dependencies
 pip install -r requirements.txt
 
-# 1. Generate the mobility dataset
+#Create and Activate Virtual Environment
+python -m venv .venv
+
+# On Windows:
+.venv\Scripts\activate
+# On macOS/Linux:
+source .venv/bin/activate
+
+# 1. Generate the dataset
 python backend/generate_data.py
 
 # 2. Train the Random Forest Model
 python backend/train_model.py
 
-# 3. Generate Accuracy Plots
+# 3. Process Ranking Engine Logic (Verify AI Scoring)
+python backend/ranking_engine.py
+
+# 4. Generate Accuracy Plots (MAE/R2)
 python backend/evaluate_plots.py
 
-# 4. Run Logic Validation Tests
+# 5. Run Logic Validation Tests
 python backend/tests/test_logic.py
 
-# 5. Start the Production API (Port 8001)
+# 6. Start the Production API (Port 8001)
 python backend/main.py
 -----------------------------------------------------------------------
-Frontend execution
+
+###Frontend execution :
 
 # Navigate to backend folder & run
 python main.py
