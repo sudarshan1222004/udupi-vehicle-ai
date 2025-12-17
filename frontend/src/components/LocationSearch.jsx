@@ -1,96 +1,57 @@
 import { useState, useEffect } from 'react';
-import { Search, MapPin, Navigation } from 'lucide-react';
-import { searchLocation } from '../api'; // Ensure this matches your api.js path
+import { Search, MapPin } from 'lucide-react';
+import { searchLocation } from '../api';
 
-const LocationSearch = ({ placeholder, value, onSelect, onUseCurrent, autoFocus }) => {
+const LocationSearch = ({ type, value, onSelect }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
 
-  // Sync internal text when the parent updates the value (e.g. Map Click)
   useEffect(() => {
-    if (value) {
-      setQuery(value.name);
-    } else {
-      setQuery(''); // Clear text if value is null
-    }
+    // Force white text by updating query when value changes from Map or Search
+    if (value) setQuery(value.name);
   }, [value]);
 
   const handleSearch = async (e) => {
     const txt = e.target.value;
     setQuery(txt);
-    
-    // Only search if 3+ characters
     if (txt.length > 2) {
-      setIsSearching(true);
       const data = await searchLocation(txt);
       setResults(data);
-      setIsSearching(false);
     } else {
       setResults([]);
     }
   };
 
-  const selectResult = (item) => {
-    setQuery(item.name);
-    setResults([]);
-    onSelect(item); // Send selected place back to App.jsx
-  };
-
   return (
-    <div className="search-wrapper" style={{ position: 'relative', width: '100%' }}>
-      <input 
-        type="text" 
-        placeholder={placeholder}
-        value={query}
-        onChange={handleSearch}
-        autoFocus={autoFocus}
-        style={{
-          width: '100%',
-          border: 'none',
-          outline: 'none',
-          fontSize: '0.95rem',
-          fontWeight: '500',
-          color: '#1f2937',
-          background: 'transparent'
-        }}
-      />
+    <div className="w-full relative group">
+      <label className="text-[10px] uppercase font-black text-slate-500 mb-1 ml-1 tracking-widest">
+        {type === 'pickup' ? 'Pickup Location' : 'Dropoff Location'}
+      </label>
+      <div className="flex items-center bg-slate-800/80 border border-slate-700 rounded-2xl px-4 py-3 focus-within:border-blue-500 transition-all">
+        <input
+          type="text"
+          className="bg-transparent border-none outline-none w-full text-white font-bold placeholder-slate-500 text-sm"
+          placeholder={type === 'pickup' ? "Enter pickup..." : "Enter dropoff..."}
+          value={query}
+          onChange={handleSearch}
+        />
+      </div>
       
-      {/* Search Suggestions Dropdown */}
       {results.length > 0 && (
-        <div style={{
-          position: 'absolute',
-          top: '100%',
-          left: 0,
-          right: 0,
-          background: 'white',
-          zIndex: 1000,
-          borderRadius: '8px',
-          boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
-          maxHeight: '200px',
-          overflowY: 'auto',
-          marginTop: '5px',
-          border: '1px solid #e5e7eb'
-        }}>
+        <div className="absolute z-[3000] w-full bg-slate-900 border border-slate-700 mt-2 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl">
           {results.map((item, idx) => (
             <div 
               key={idx} 
-              onClick={(e) => { e.stopPropagation(); selectResult(item); }}
-              style={{
-                padding: '10px',
-                borderBottom: '1px solid #f3f4f6',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px'
+              className="p-4 hover:bg-blue-600/20 cursor-pointer flex items-center gap-3 border-b border-slate-800 last:border-none transition-colors"
+              onClick={() => {
+                onSelect({ lat: item.lat, lng: item.lng, name: item.name });
+                setResults([]);
               }}
             >
-              <MapPin size={14} color="#6b7280" />
+              <MapPin size={16} className="text-blue-500" />
               <div>
-                <div style={{fontWeight: 600, fontSize: '0.9rem'}}>{item.name}</div>
-                <div style={{fontSize: '0.75rem', color: '#9ca3af', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '250px'}}>
-                  {item.full_name}
-                </div>
+                <div className="text-white text-sm font-bold">{item.name}</div>
+                <div className="text-slate-500 text-[10px] truncate w-60">{item.full_name}</div>
               </div>
             </div>
           ))}
