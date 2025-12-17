@@ -23,7 +23,7 @@ Professional testing is integrated to satisfy the "test inference performance" a
     * **Accuracy Scatter Plot**: Visualizes Actual vs. Predicted ETA.
     * **Feature Importance**: Proves how `trip_distance` and `hour_of_day` drive the AI’s decisions.
 
-### 3. Intelligent Frontend (Vite + React)[still under developmnt]
+### 3. Intelligent Frontend (Vite + React)
 A premium, dark-themed responsive user interface :
 * **Sidebar Controls**: Features pickup and drop-off inputs with a "Current Location" GPS trigger. All selected location names appear clearly.
 * **Interactive Map**: Built with **Leaflet**, allowing users to set points by clicking the map. It renders a real-road "Blue Line" route using OSRM data.
@@ -37,9 +37,6 @@ A premium, dark-themed responsive user interface :
 ### Backend & Logic Setup
 ```bash
 
-# Install Python dependencies
-pip install -r requirements.txt
-
 #Create and Activate Virtual Environment
 python -m venv .venv
 
@@ -47,6 +44,9 @@ python -m venv .venv
 .venv\Scripts\activate
 # On macOS/Linux:
 source .venv/bin/activate
+
+# Install Python dependencies
+pip install -r requirements.txt
 
 # 1. Generate the dataset
 python backend/generate_data.py
@@ -64,7 +64,7 @@ python backend/evaluate_plots.py
 python backend/tests/test_logic.py
 
 # 6. Start the Production API (Port 8001)
-python backend/main.py
+python backend/app.py
 -----------------------------------------------------------------------
 
 ###Frontend execution :
