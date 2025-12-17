@@ -1,185 +1,155 @@
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline, useMap } from 'react-leaflet';
-import { User, ShieldCheck } from 'lucide-react';
+import { User, ShieldCheck, Navigation, Clock, ChevronRight } from 'lucide-react';
 import LocationSearch from './components/LocationSearch';
 import { getRoadRoute, getPricePrediction, reverseGeocode } from './api';
 import 'leaflet/dist/leaflet.css';
 import './App.css';
 import L from 'leaflet';
 
-// --- RELIABLE ASSET FIX ---
-// Using data URIs or direct CDN links for icons to bypass "Tracking Prevention" blocks
-const carUrl = 'https://img.icons8.com/fluency/48/sedan.png';
-const autoUrl = 'https://img.icons8.com/fluency/48/tuk-tuk.png'; 
-const bikeUrl = 'https://img.icons8.com/fluency/48/motorcycle.png';
-
-// Custom Marker Icons
-const carIcon = new L.Icon({ iconUrl: carUrl, iconSize: [40, 40], iconAnchor: [20, 20] });
-const autoIcon = new L.Icon({ iconUrl: autoUrl, iconSize: [40, 40], iconAnchor: [20, 20] });
-const bikeIcon = new L.Icon({ iconUrl: bikeUrl, iconSize: [40, 40], iconAnchor: [20, 20] });
-
-// Default Pin Fix: Overriding Leaflet's default to avoid external storage/cookie blocks
-const defaultPin = new L.Icon({
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+// Leaflet Icon Fix
+const DefaultIcon = L.icon({
+  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
   iconSize: [25, 41],
-  iconAnchor: [12, 41],
+  iconAnchor: [12, 41]
 });
+L.Marker.prototype.options.icon = DefaultIcon;
 
-function MapRecenter({ pickup, drop }) {
+function MapRecenter({ center }) {
   const map = useMap();
   useEffect(() => {
-    if (pickup && drop) {
-      const bounds = L.latLngBounds([pickup, drop]);
-      map.fitBounds(bounds, { padding: [50, 50] }); 
-    } else if (pickup) {
-      map.flyTo(pickup, 14);
-    }
-  }, [pickup, drop, map]);
+    if (center) map.flyTo([center.lat, center.lng], 14);
+  }, [center, map]);
   return null;
 }
 
 function App() {
   const [pickup, setPickup] = useState(null);
   const [drop, setDrop] = useState(null);
-  const [routePath, setRoutePath] = useState(null);
+  const [routePath, setRoutePath] = useState(null); 
   const [rides, setRides] = useState([]);
-  const [loadingRoute, setLoadingRoute] = useState(false);
-  const [activeStep, setActiveStep] = useState('search');
-  const [activeField, setActiveField] = useState('pickup');
+  const [loading, setLoading] = useState(false);
+  const [activeStep, setActiveStep] = useState('search'); 
   const [selectedRide, setSelectedRide] = useState(null);
-  const [driver, setDriver] = useState(null);
-  const [otp, setOtp] = useState(null);
-  const [hasArrived, setHasArrived] = useState(false);
-  const [driverLocation, setDriverLocation] = useState(null);
 
-  useEffect(() => {
-    const fetchRoute = async () => {
-      if (!pickup || !drop) return;
-      setLoadingRoute(true);
-      try {
-        const routeData = await getRoadRoute(pickup, drop);
-        if (routeData) {
-          setRoutePath(routeData.coordinates);
-          // Calling Backend on Port 8001
-          const priceData = await getPricePrediction(pickup, drop, routeData.distance_km);
-          
-          if (Array.isArray(priceData)) {
-            setRides(priceData.map(r => ({
-              vehicle: r.vehicle, 
-              price: r.fare,
-              distance: r.distance,
-              eta: r.eta, 
-              demand: r.demand
-            })));
-            setActiveStep('selecting');
-          }
-        }
-      } catch (err) {
-        console.error("AI Backend Error:", err);
-      } finally {
-        setLoadingRoute(false);
-      }
-    };
-    fetchRoute();
-  }, [pickup, drop]);
-
-  const handleBookRide = () => {
-    setActiveStep('searching_driver');
-    setOtp(Math.floor(1000 + Math.random() * 9000));
-    setTimeout(() => {
-      setDriver({ name: "Ramesh Shetty", plate: "KA 20 AB 1234", vehicle: selectedRide.vehicle });
-      setDriverLocation({ lat: pickup.lat + 0.003, lng: pickup.lng + 0.003 });
-      setActiveStep('driver_found');
-      setTimeout(() => setHasArrived(true), 5000);
-    }, 3000);
+  // GPS Current Location
+  const handleCurrentLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        const address = await reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+        setPickup({ lat: pos.coords.latitude, lng: pos.coords.longitude, name: address.name });
+      });
+    }
   };
 
+  // Logic to fetch Route and AI Predictions
+  useEffect(() => {
+    const fetchAI = async () => {
+      if (pickup && drop) {
+        setLoading(true);
+        const routeData = await getRoadRoute(pickup, drop);
+        if (routeData) {
+          setRoutePath(routeData.coordinates); 
+          const priceData = await getPricePrediction(pickup, drop, routeData.distance_km);
+          if (Array.isArray(priceData)) {
+            setRides(priceData.map(r => ({
+              vehicle: r.vehicle, price: r.fare, eta: r.eta, dist: routeData.distance_km, surge: r.demand === 'High'
+            })));
+          }
+        }
+        setLoading(false);
+      }
+    };
+    fetchAI();
+  }, [pickup, drop]);
+
+  // Map Click Logic
   const MapClickHandler = () => {
     useMapEvents({
-      click: async (e) => {
-        const coords = { lat: e.latlng.lat, lng: e.latlng.lng, name: "Pinned Point" };
-        if (activeField === 'pickup') { setPickup(coords); setActiveField('drop'); } 
-        else { setDrop(coords); }
+      async click(e) {
+        if (activeStep !== 'search') return;
+        const address = await reverseGeocode(e.latlng.lat, e.latlng.lng);
+        const coords = { lat: e.latlng.lat, lng: e.latlng.lng, name: address.name };
+        if (!pickup) setPickup(coords);
+        else if (!drop) setDrop(coords);
       },
     });
     return null;
   };
 
   return (
-    <div className="app-container">
-      <div className="booking-panel">
-        <div className="panel-header">
-            <h1>Smart Ride</h1>
-            <span style={{fontSize: '0.7rem'}}>Santhekatte, Udupi AI Hub [cite: 2]</span>
+    <div className="app-layout">
+      {/* Sidebar - Left Docked */}
+      <div className="sidebar shadow-2xl">
+        <div className="brand-section">
+          <h1 className="brand-logo italic">SMART RIDE</h1>
+          <p className="brand-tagline">Udupi AI Mobility Engine</p>
         </div>
-        
-        <div className="panel-content">
+
+        <div className="content-area">
           {activeStep === 'search' && (
-            <div className="input-group">
-              <div className={`location-input-row ${activeField === 'pickup' ? 'active' : ''}`} onClick={() => setActiveField('pickup')}>
-                <div className="dot green"></div>
-                <div className="input-text">
-                  <span className="label">Pickup Location</span>
-                  <LocationSearch value={pickup} onSelect={(val) => { setPickup(val); setActiveField('drop'); }} />
-                </div>
+            <div className="animate-in space-y-6">
+              <div className="input-card">
+                <LocationSearch type="pickup" value={pickup} onSelect={setPickup} onUseCurrent={handleCurrentLocation} />
+                <div className="vertical-divider"></div>
+                <LocationSearch type="drop" value={drop} onSelect={setDrop} />
               </div>
-              <div className={`location-input-row ${activeField === 'drop' ? 'active' : ''}`} onClick={() => setActiveField('drop')}>
-                <div className="dot red"></div>
-                <div className="input-text">
-                  <span className="label">Dropoff Location</span>
-                  <LocationSearch value={drop} onSelect={(val) => setDrop(val)} />
+
+              {loading && <div className="status-loader"><div className="spinner"></div><span>AI Analysis...</span></div>}
+
+              {rides.length > 0 && !loading && (
+                <div className="space-y-4">
+                  <h3 className="section-title">Suggested Rides</h3>
+                  {rides.map(ride => (
+                    <div 
+                      key={ride.vehicle} 
+                      className={`ride-card-new ${selectedRide?.vehicle === ride.vehicle ? 'active' : ''}`}
+                      onClick={() => setSelectedRide(ride)}
+                    >
+                      <div className="ride-card-main">
+                        <img src={`https://img.icons8.com/color/48/${ride.vehicle.toLowerCase().includes('auto') ? 'tuk-tuk' : ride.vehicle.toLowerCase().includes('bike') ? 'motorcycle' : 'car'}.png`} alt="icon" />
+                        <div>
+                          <span className="vehicle-name">{ride.vehicle}</span>
+                          <span className="eta-tag">{ride.eta} min • {ride.dist} km</span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="price-tag">₹{ride.price}</span>
+                        {ride.surge && <span className="surge-badge">SURGE</span>}
+                      </div>
+                    </div>
+                  ))}
+                  <button className="confirm-button" disabled={!selectedRide} onClick={() => setActiveStep('booking')}>
+                    Confirm {selectedRide?.vehicle} <ChevronRight size={18} />
+                  </button>
                 </div>
-              </div>
+              )}
             </div>
           )}
 
-          {loadingRoute && <div className="loader">Running ML Inference... [cite: 8]</div>}
-
-          {activeStep === 'selecting' && !loadingRoute && (
-            <div className="rides-list">
-              <h3>Available Options</h3>
-              {rides.map(ride => (
-                <div key={ride.vehicle} className={`ride-item ${selectedRide?.vehicle === ride.vehicle ? 'selected' : ''}`} onClick={() => setSelectedRide(ride)}>
-                  <img src={ride.vehicle.toLowerCase().includes('auto') ? autoUrl : ride.vehicle.toLowerCase().includes('bike') ? bikeUrl : carUrl} alt="icon" />
-                  <div className="ride-info">
-                    <h4>{ride.vehicle}</h4>
-                    <p>{ride.eta} min • {ride.distance} km</p>
-                    {ride.demand === 'High' && <span style={{color: '#ef4444', fontSize: '0.7rem', fontWeight: 'bold'}}>Surge Active [cite: 11]</span>}
-                  </div>
-                  <div className="price">₹{ride.price}</div>
-                </div>
-              ))}
-              <button className="action-btn" disabled={!selectedRide} onClick={handleBookRide}>Book {selectedRide?.vehicle}</button>
-            </div>
-          )}
-
-          {activeStep === 'driver_found' && (
-            <div className="success-view">
-              <h2>{hasArrived ? "Driver Arrived!" : "Matching Driver..."}</h2>
-              {hasArrived && <div className="otp-box">OTP: {otp}</div>}
-              <div className="driver-card">
-                <User size={24} />
-                <div>
-                  <h4>{driver?.name}</h4>
-                  <p>{driver?.vehicle} • {driver?.plate}</p>
-                </div>
+          {activeStep === 'booking' && (
+            <div className="text-center py-10 space-y-6 animate-in">
+              <ShieldCheck size={48} className="mx-auto text-emerald-400" />
+              <h2 className="text-2xl font-bold">Ride Dispatched!</h2>
+              <div className="driver-profile-new">
+                <div className="avatar-circle"><User /></div>
+                <div><span className="driver-name">Ramesh Shetty</span><span className="car-plate">KA 20 AB 9999 • 4.9 ★</span></div>
               </div>
-              <button className="action-btn" onClick={() => window.location.reload()}>New Request</button>
+              <button className="confirm-button" style={{background: '#334155'}} onClick={() => window.location.reload()}>Book Another Ride</button>
             </div>
           )}
         </div>
       </div>
 
-      <div className="map-layer">
-        <MapContainer center={[13.3409, 74.7421]} zoom={13} style={{ height: "100%", width: "100%" }}>
+      <div className="map-container-full">
+        <MapContainer center={[13.3409, 74.7421]} zoom={13} zoomControl={false} className="full-map">
           <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
           <MapClickHandler />
-          {pickup && <Marker position={pickup} icon={defaultPin} />}
-          {drop && <Marker position={drop} icon={defaultPin} />}
-          {driverLocation && <Marker position={driverLocation} icon={selectedRide?.vehicle.toLowerCase().includes('auto') ? autoIcon : selectedRide?.vehicle.toLowerCase().includes('bike') ? bikeIcon : carIcon} />}
-          <MapRecenter pickup={pickup} drop={drop} />
-          {routePath && <Polyline positions={routePath} color="#2563eb" weight={4} />}
+          {pickup && <Marker position={[pickup.lat, pickup.lng]} />}
+          {drop && <Marker position={[drop.lat, drop.lng]} />}
+          {pickup && <MapRecenter center={pickup} />}
+          {routePath && <Polyline positions={routePath} color="#2563eb" weight={6} opacity={0.8} />}
         </MapContainer>
       </div>
     </div>

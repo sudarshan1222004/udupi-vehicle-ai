@@ -1,293 +1,155 @@
-/* --- Global Styles and Typography --- */
-body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
-    background-color: #f3f4f6;
-    color: #1f2937;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+:root {
+  --bg-dark: #0f172a;
+  --card-dark: #1e293b;
+  --accent-blue: #2563eb;
+  --text-white: #f8fafc;
+  --text-dim: #94a3b8;
 }
 
-h1, h2, h3, h4 {
-    color: #111827;
+.app-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--bg-dark);
 }
 
-/* --- Main Layout --- */
-.app-container {
-    display: flex;
-    height: 100vh;
-    width: 100vw;
-    overflow: hidden;
+.sidebar {
+  width: 400px;
+  background: var(--bg-dark);
+  border-right: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
 }
 
-.booking-panel {
-    width: 400px;
-    height: 100%;
-    background-color: white;
-    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
-    display: flex;
-    flex-direction: column;
-    z-index: 1000; /* Ensure panel is above the map */
+.brand-section {
+  padding: 40px 30px;
+  background: linear-gradient(135deg, var(--accent-blue), #1d4ed8);
 }
 
-.panel-header {
-    padding: 20px 24px;
-    background-color: #1f2937; /* Dark header */
-    color: white;
-    border-bottom: 1px solid #e5e7eb;
-    text-align: center;
+.brand-logo {
+  font-size: 1.8rem;
+  font-weight: 900;
+  letter-spacing: -1px;
+  color: white;
+  margin: 0;
 }
 
-.panel-header h1 {
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: white;
+.brand-tagline {
+  color: rgba(255,255,255,0.7);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-top: 5px;
 }
 
-.panel-content {
-    flex-grow: 1;
-    padding: 24px;
-    overflow-y: auto;
+.content-area {
+  padding: 30px;
+  flex: 1;
+  overflow-y: auto;
 }
 
-.map-layer {
-    flex-grow: 1;
-    height: 100%;
+.input-card {
+  background: var(--card-dark);
+  border-radius: 20px;
+  padding: 20px;
+  border: 1px solid rgba(255,255,255,0.05);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
 
-/* --- Input Group & Location Selection --- */
-.input-group {
-    background-color: #f9fafb;
-    border-radius: 12px;
-    padding: 12px;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+.vertical-divider {
+  height: 20px;
+  width: 2px;
+  background: rgba(255,255,255,0.1);
+  margin-left: 20px;
 }
 
-.location-input-row {
-    display: flex;
-    align-items: center;
-    padding: 10px 0;
-    cursor: pointer;
-    transition: background-color 0.15s;
+.ride-card-new {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 16px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
 }
 
-.location-input-row.active {
-    background-color: #e5e7eb;
-    border-radius: 8px;
-    padding: 10px;
-    margin: -10px; /* Adjust padding loss */
+.ride-card-new:hover {
+  background: rgba(255,255,255,0.08);
+  transform: translateY(-2px);
 }
 
-.location-input-row:not(.active):hover {
-    background-color: #f3f4f6;
+.ride-card-new.active {
+  background: rgba(37, 99, 235, 0.1);
+  border-color: var(--accent-blue);
 }
 
-.dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-right: 15px;
-    border: 2px solid white;
-    box-shadow: 0 0 0 1px #9ca3af;
+.ride-card-main {
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
-.dot.green {
-    background-color: #10b981;
+.vehicle-name {
+  display: block;
+  font-weight: 700;
+  color: white;
 }
 
-.dot.red {
-    background-color: #ef4444;
+.eta-tag {
+  font-size: 0.75rem;
+  color: var(--text-dim);
 }
 
-.input-text {
-    flex-grow: 1;
-    font-size: 0.9rem;
+.price-tag {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #10b981;
 }
 
-.input-text .label {
-    display: block;
-    color: #6b7280;
-    font-size: 0.8rem;
-    margin-bottom: 2px;
+.confirm-button {
+  width: 100%;
+  padding: 16px;
+  background: var(--accent-blue);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-weight: 700;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  cursor: pointer;
+  transition: opacity 0.2s;
 }
 
-/* --- Location Search Component (Styling the input inside) --- */
-.location-search-input {
-    width: 100%;
-    border: none;
-    background: transparent;
-    font-size: 1rem;
-    padding: 0;
-    outline: none;
-    font-weight: 500;
-    color: #1f2937;
+.confirm-button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.map-container-full { flex: 1; position: relative; }
+.full-map { height: 100%; width: 100%; }
+
+.surge-badge {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  font-size: 0.6rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 800;
+  margin-top: 4px;
+  display: block;
+  text-align: right;
 }
 
-.current-loc-btn {
-    background: none;
-    border: none;
-    color: #3b82f6;
-    cursor: pointer;
-    padding: 5px;
-    margin-left: 10px;
-}
-.current-loc-btn svg {
-    transform: rotate(45deg); /* Point the navigation icon correctly */
+/* Animations */
+.animate-in {
+  animation: slideUp 0.4s ease-out;
 }
 
-/* --- Ride List & Booking Button --- */
-.rides-list h3 {
-    font-size: 1.1rem;
-    margin-top: 0;
-    margin-bottom: 15px;
-    border-bottom: 2px solid #e5e7eb;
-    padding-bottom: 8px;
-    color: #374151;
-}
-
-.action-btn {
-    width: 100%;
-    padding: 15px;
-    background-color: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 25px;
-    transition: background-color 0.2s, opacity 0.2s;
-}
-
-.action-btn:hover:not(:disabled) {
-    background-color: #2563eb;
-}
-
-.action-btn:disabled {
-    background-color: #9ca3af;
-    cursor: not-allowed;
-    opacity: 0.7;
-}
-
-/* --- Driver Found View --- */
-.success-view {
-    display: flex;
-    flex-direction: column;
-    min-height: 100%;
-}
-
-.driver-card {
-    display: flex;
-    align-items: center;
-    background-color: #f9fafb;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 15px;
-    margin-top: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-}
-
-.driver-avatar {
-    background-color: #d1d5db;
-    color: #4b5563;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-right: 15px;
-}
-
-.eta-badge {
-    background-color: #fcd34d;
-    color: #92400e;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-weight: 600;
-    font-size: 0.8rem;
-}
-.eta-badge.arrived {
-    background-color: #10b981;
-    color: white;
-}
-
-.otp-box {
-    text-align: center;
-    font-size: 2rem;
-    font-weight: bold;
-    color: #3b82f6;
-    padding: 15px;
-    border: 2px dashed #93c5fd;
-    border-radius: 10px;
-    margin-bottom: 15px;
-    background-color: #eff6ff;
-}
-
-/* --- Tip Options --- */
-.tip-section {
-    padding: 15px 0;
-    border-top: 1px dashed #e5e7eb;
-    border-bottom: 1px dashed #e5e7eb;
-}
-
-.tip-options {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-}
-
-.tip-btn {
-    background-color: #f3f4f6;
-    color: #4b5563;
-    border: 1px solid #d1d5db;
-    padding: 8px 15px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.2s;
-}
-
-.tip-btn.active {
-    background-color: #2563eb;
-    color: white;
-    border-color: #2563eb;
-}
-
-.tip-btn:hover {
-    border-color: #3b82f6;
-}
-
-/* --- Animation Styles --- */
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
-}
-
-.searching-view {
-    text-align: center;
-    padding-top: 40px;
-    min-height: 250px;
-}
-
-.pulse-ring {
-    width: 80px;
-    height: 80px;
-    background-color: #3b82f6;
-    border-radius: 50%;
-    margin: 0 auto 20px;
-    animation: pulse 2s infinite;
-}
-
-/* Hide input from LocationSearch component when not in focus */
-.location-search-input:focus::placeholder {
-    color: transparent;
-}
-
-/* Ensure the Leaflet map container takes full space */
-.map-layer .leaflet-container {
-    height: 100%;
+@keyframes slideUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
