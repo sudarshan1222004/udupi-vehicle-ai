@@ -1,3 +1,4 @@
+##api for front end (react)
 import uvicorn
 import numpy as np
 from fastapi import FastAPI
