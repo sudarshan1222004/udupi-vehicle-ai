@@ -1,52 +1,66 @@
+---
+
 # 🚖 AI-Driven Vehicle Matching & Dynamic Pricing System (for Udupi/Manipal)
 
-[cite_start]An end-to-end mobility solution featuring a **Vite + React** frontend, a **FastAPI** backend, and a **Random Forest ML** model[cite: 3, 21]. [cite_start]This project predicts ETA and implements surge pricing for the **Udupi/Manipal** region, specifically developed for the **UNLOADIN** AI/ML Engineering Internship[cite: 4, 10, 23].
+An end-to-end mobility solution featuring a **Vite + React** frontend, a **FastAPI** backend, and a **Random Forest ML** model. This project predicts ETA and implements surge pricing for the **Udupi/Manipal** region, specifically developed for the **UNLOADIN** AI/ML Engineering Internship.
 
 ---
 
 ## 🏗️ Project Architecture & Workflow
 
-[cite_start]The system is designed as a decoupled full-stack application to simulate a production-ready "live system"[cite: 21, 23].
+The system is designed as a decoupled full-stack application to simulate a production-ready "live system".
 
 ### 1. AI/ML Backend (Python)
-[cite_start]The backend handles the data science and core decision logic[cite: 11, 21]:
-* [cite_start]**Data Pipeline (`generate_data.py`)**: Uses **Pandas** and **NumPy** to create a 10,000-sample mobility dataset with geo-coordinate boundaries specifically for the **Udupi-Manipal** region[cite: 8, 9, 42].
-* [cite_start]**Model Training (`train_model.py`)**: Utilizes **Scikit-learn** to train a **Random Forest Regressor** to predict ETA based on trip distance, hour of the day, and vehicle type[cite: 12, 13, 17, 42].
-* **Ranking Engine (`ranking_engine.py`)**: The "Brain" of the app. [cite_start]It calculates dynamic surge pricing (1.45x) during Udupi rush hours (9–11 AM and 5–9 PM) [cite: 16, 17] [cite_start]and ranks vehicles based on user preferences: **Cheapest**, **Fastest**, or **Balanced**[cite: 18, 19].
-* [cite_start]**API Service (`main.py`)**: Dedicated FastAPI service running on **Port 8001** to serve the production React frontend[cite: 21, 23].
-* [cite_start]**Admin Console (`app.py`)**: A separate FastAPI service on **Port 8000** for manual logic testing and developer verification[cite: 43].
+
+The backend handles the data science and core decision logic:
+
+* **Data Pipeline (`generate_data.py`)**: Uses **Pandas** and **NumPy** to create a 10,000-sample mobility dataset with geo-coordinate boundaries specifically for the **Udupi-Manipal** region.
+* **Model Training (`train_model.py`)**: Utilizes **Scikit-learn** to train a **Random Forest Regressor** to predict ETA based on trip distance, hour of the day, and vehicle type.
+* **Ranking Engine (`ranking_engine.py`)**: The "Brain" of the app. It calculates dynamic surge pricing (1.45x) during Udupi rush hours (9–11 AM and 5–9 PM) and ranks vehicles based on user preferences: **Cheapest**, **Fastest**, or **Balanced**.
+* **API Service (`main.py`)**: Dedicated FastAPI service running on **Port 8001** to serve the production React frontend.
+* **Admin Console (`app.py`)**: A separate FastAPI service on **Port 8000** for manual logic testing and developer verification.
 
 ### 2. Validation & Quality Assurance
-[cite_start]Professional testing is integrated to satisfy the "test inference performance" and logic accuracy requirements[cite: 33, 34]:
-* [cite_start]**Logic Validation (`tests/test_logic.py`)**: A comprehensive test suite that validates the backend math, ensuring the ranking engine returns the correct top 3 vehicles and triggers surge pricing multipliers correctly[cite: 33, 38].
-* [cite_start]**Visual Evaluation (`evaluate_plots.py`)**: Generates visual proof of model intelligence[cite: 31, 40]:
-    * [cite_start]**Accuracy Scatter Plot**: Visualizes Actual vs. Predicted ETA[cite: 31, 36].
-    * [cite_start]**Feature Importance**: Proves how `trip_distance` and `hour_of_day` drive the AI’s decisions[cite: 10, 31, 40].
+
+Professional testing is integrated to satisfy the "test inference performance" and logic accuracy requirements:
+
+* **Logic Validation (`tests/test_logic.py`)**: A comprehensive test suite that validates the backend math, ensuring the ranking engine returns the correct top 3 vehicles and triggers surge pricing multipliers correctly.
+* **Visual Evaluation (`evaluate_plots.py`)**: Generates visual proof of model intelligence:
+* **Accuracy Scatter Plot**: Visualizes Actual vs. Predicted ETA.
+* **Feature Importance**: Proves how `trip_distance` and `hour_of_day` drive the AI’s decisions.
+
+
 
 ### 3. Intelligent Frontend (Vite + React)
-[cite_start]A premium, dark-themed responsive user interface[cite: 26, 39]:
-* **Sidebar Controls**: Features pickup and drop-off inputs with a "Current Location" GPS trigger. All selected location names appear clearly.
-* [cite_start]**Interactive Map**: Built with **Leaflet**, allowing users to set points by clicking the map[cite: 24]. [cite_start]It renders a real-road "Blue Line" route using OSRM data[cite: 25].
+
+A premium, dark-themed responsive user interface:
+
+* **Sidebar Controls**: Features pickup and drop-off inputs with a "Current Location" GPS trigger. All selected location names appear clearly in high-contrast white.
+* **Interactive Map**: Built with **Leaflet**, allowing users to set points by clicking the map and rendering real-road routes via OSRM data.
 * **Live Simulation**: Upon confirmation, a taxi marker physically animates toward the pickup point, accompanied by a dynamic **OTP generator** and a **Driver Tip** section.
-* [cite_start]**Real-time Engine**: Fetches live data from the FastAPI server on Port 8001, displaying predicted ETA, fare, and surge status[cite: 23, 30].
+* **Real-time Engine**: Fetches live data from the FastAPI server on Port 8001, displaying predicted ETA, fare, and surge status.
 
 ---
 
 ## 🛠️ Tech Stack
-* [cite_start]**Frontend**: React.js (Vite), Leaflet.js, Tailwind CSS, Lucide Icons[cite: 42, 43].
-* [cite_start]**Backend**: Python 3.8+, FastAPI, Uvicorn[cite: 42, 43].
-* [cite_start]**Machine Learning**: Scikit-learn (Random Forest), Pandas, NumPy[cite: 42].
-* [cite_start]**Geospatial**: OpenStreetMap (OSRM) for real-road routing[cite: 7, 24].
+
+* **Frontend**: React.js (Vite), Leaflet.js, Tailwind CSS, Lucide Icons.
+* **Backend**: Python 3.8+, FastAPI, Uvicorn.
+* **Machine Learning**: Scikit-learn (Random Forest), Pandas, NumPy.
+* **Geospatial**: OpenStreetMap (OSRM) for real-road routing.
 
 ---
 
 ## 📡 API Walkthrough
-[cite_start]The system exposes a primary endpoint for ride quotes[cite: 21, 23]:
+
+The system exposes a primary endpoint for ride quotes:
 
 ### **Endpoint**: `POST /predict_ride`
-[cite_start]**Description**: Returns ranked vehicle options with AI-predicted ETA and dynamic pricing[cite: 18, 23].
+
+**Description**: Returns ranked vehicle options with AI-predicted ETA and dynamic pricing.
 
 **Sample Request**:
+
 ```json
 {
   "start_lat": 13.3409,
@@ -56,8 +70,12 @@
   "hour": 18,
   "preference": "balanced"
 }
----
+
+```
+
 **Sample Response**:
+
+```json
 [
   {
     "vehicle": "Auto",
@@ -72,57 +90,62 @@
     "demand": "High"
   }
 ]
+
+```
+
 ---
-🖥️ UI Walkthrough
-Selection: Click two points on the map or use the search bar to set Pickup and Drop-off locations.
 
-AI Inference: The system automatically communicates with the FastAPI backend to calculate the best route and prices.
+## 🖥️ UI Walkthrough
 
-Selection: Choose your preferred vehicle (Bike, Auto, Sedan) from the ranked list.
+### **Phase 1: Backend Admin Console Verification**
 
-Confirmation: Click 'Request' to see the driver simulation, the secure OTP, and the driver tip interface.
+1. Run `python backend/app.py` in your terminal.
+2. Click the local URL generated (usually `http://127.0.0.1:8000`) to open the web-based Admin Console.
+3. Use the HTML form to manually input coordinates and verify that the ML model returns the correct JSON quote and ranking logic.
+
+### **Phase 2: Production Frontend Experience**
+
+1. **Selection**: Click two points on the map or use the search bar to set Pickup and Drop-off locations.
+2. **AI Inference**: The system automatically communicates with the FastAPI backend on Port 8001 to calculate the best route and prices.
+3. **Selection**: Choose your preferred vehicle (Bike, Auto, Sedan) from the ranked list based on your 'Fastest' or 'Cheapest' preference.
+4. **Confirmation**: Click 'Request' to trigger the driver movement simulation, the secure OTP display, and the driver tip interface.
+
+---
 
 ## 🚦 Execution Guide
 
 ### Backend & Logic Setup
-```bash
 
-#Create and Activate Virtual Environment
+```bash
+# 1. Create and Activate Virtual Environment
 python -m venv .venv
 
 # On Windows:
-.venv\Scripts\activate
+.venv\Scripts\Activate.ps1
 # On macOS/Linux:
 source .venv/bin/activate
 
-# Install Python dependencies
+# 2. Install Python dependencies
 pip install -r requirements.txt
 
-# 1. Generate the dataset
+# 3. Data & Model Preparation
 python backend/generate_data.py
-
-# 2. Train the Random Forest Model
 python backend/train_model.py
-
-# 3. Process Ranking Engine Logic (Verify AI Scoring)
 python backend/ranking_engine.py
 
-# 4. Generate Accuracy Plots (MAE/R2)
+# 4. Evaluation & Testing
 python backend/evaluate_plots.py
-
-# 5. Run Logic Validation Tests
 python backend/tests/test_logic.py
 
-# 6. Start the Production API (Port 8001)
-python backend/app.py
------------------------------------------------------------------------
+# 5. Start the Production API (Port 8001)
+python backend/main.py
 
-###Frontend execution :
+```
 
-# Navigate to backend folder & run
-python main.py
+### Frontend Execution
 
-# Navigate to frontend folder in another terminal 
+```bash
+# Open a new terminal and navigate to frontend folder
 cd frontend
 
 # Install dependencies
@@ -130,3 +153,7 @@ npm install
 
 # Start the development server
 npm run dev
+
+```
+
+---
