@@ -5,12 +5,12 @@ from fastapi import FastAPI, Request, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 
-# Import the logic from ranking_engine.py
+# Connecting our ranking logic from the other file
 from ranking_engine import get_vehicle_recommendations
 
 app = FastAPI(title="Udupi AI - Smart Ride Console")
 
-# --- CORS CONFIGURATION ---
+# --- MAKING SURE THE APP CAN TALK TO THE FRONTEND ---
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
@@ -19,7 +19,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- PREMIUM UI/UX TEMPLATE ---
+# --- THE DESIGN OF THE WEBSITE (HTML/CSS) ---
+# I used Tailwind CSS to make it look modern and dark-themed
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="en">
@@ -34,7 +35,6 @@ HTML_TEMPLATE = """
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
         input, select { background: #1e293b !important; border: 1px solid #334155 !important; color: white !important; }
         input:focus { border-color: #3b82f6 !important; ring: 2px #3b82f6; }
-        ::-webkit-inner-spin-button { opacity: 1; } /* Ensure arrows are visible */
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
@@ -62,23 +62,23 @@ HTML_TEMPLATE = """
                 <div class="grid grid-cols-2 gap-4">
                     <div class="flex flex-col gap-1">
                         <label class="text-xs font-medium text-slate-400">Pickup Latitude</label>
-                        <input type="number" step="0.0001" name="start_lat" value="13.3516" class="p-3 rounded-xl outline-none transition-all">
+                        <input type="number" step="0.0001" name="start_lat" value="13.3516" class="p-3 rounded-xl outline-none">
                     </div>
                     <div class="flex flex-col gap-1">
                         <label class="text-xs font-medium text-slate-400">Pickup Longitude</label>
-                        <input type="number" step="0.0001" name="start_lon" value="74.7421" class="p-3 rounded-xl outline-none transition-all">
+                        <input type="number" step="0.0001" name="start_lon" value="74.7421" class="p-3 rounded-xl outline-none">
                     </div>
                     <div class="flex flex-col gap-1">
                         <label class="text-xs font-medium text-slate-400">Drop Latitude</label>
-                        <input type="number" step="0.0001" name="end_lat" value="13.3441" class="p-3 rounded-xl outline-none transition-all">
+                        <input type="number" step="0.0001" name="end_lat" value="13.3441" class="p-3 rounded-xl outline-none">
                     </div>
                     <div class="flex flex-col gap-1">
                         <label class="text-xs font-medium text-slate-400">Drop Longitude</label>
-                        <input type="number" step="0.0001" name="end_lon" value="74.7860" class="p-3 rounded-xl outline-none transition-all">
+                        <input type="number" step="0.0001" name="end_lon" value="74.7860" class="p-3 rounded-xl outline-none">
                     </div>
                     <div class="flex flex-col gap-1">
                         <label class="text-xs font-medium text-slate-400">Operating Hour (6-23)</label>
-                        <input type="number" name="hour" value="10" min="6" max="23" class="p-3 rounded-xl outline-none transition-all">
+                        <input type="number" name="hour" value="10" min="6" max="23" class="p-3 rounded-xl outline-none">
                     </div>
                     <div class="flex flex-col gap-1">
                         <label class="text-xs font-medium text-slate-400">Ranking Strategy</label>
@@ -89,7 +89,7 @@ HTML_TEMPLATE = """
                         </select>
                     </div>
                 </div>
-                <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-blue-500/20">
+                <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 rounded-2xl transition-all shadow-lg">
                     Run AI Analysis
                 </button>
             </form>
@@ -101,23 +101,26 @@ HTML_TEMPLATE = """
 </html>
 """
 
+# Show the home page when we open the site
 @app.get("/", response_class=HTMLResponse)
 async def home():
     return HTML_TEMPLATE.replace("{% RESULTS_SECTION %}", "")
 
+# This runs when we click the "Run AI Analysis" button
 @app.post("/test", response_class=HTMLResponse)
 async def test_logic(
     start_lat: float = Form(...), start_lon: float = Form(...), 
     end_lat: float = Form(...), end_lon: float = Form(...), 
     hour: int = Form(...), preference: str = Form(...)
 ):
-    # ML Distance Calculation [cite: 9]
+    # Calculate the straight-line distance in km
     dist = round(np.sqrt((end_lat - start_lat)**2 + (end_lon - start_lon)**2) * 111, 2)
     
-    # Run the Ranking Engine [cite: 18, 23]
+    # Get the top 3 ride options from our ranking engine
     recommendations = get_vehicle_recommendations(start_lat, start_lon, end_lat, end_lon, hour, preference)
     results = recommendations.to_dict(orient="records") if hasattr(recommendations, 'to_dict') else recommendations
     
+    # Create the HTML to show our results in a nice list
     res_html = f'''
     <div class="mt-8 pt-8 border-t border-slate-800">
         <div class="flex justify-between items-center mb-4">
@@ -127,7 +130,7 @@ async def test_logic(
         <div class="space-y-3">
     '''
     for ride in results:
-        # Dynamic Surge Indicator [cite: 16]
+        # Check if we should show a red "SURGE" tag for high demand
         is_surge = ride.get('demand') == 'High'
         surge_html = '<span class="text-[10px] bg-red-500/20 text-red-400 px-2 py-0.5 rounded-md border border-red-500/30">SURGE 1.45x</span>' if is_surge else ''
         
@@ -142,11 +145,12 @@ async def test_logic(
     res_html += "</div></div>"
     return HTML_TEMPLATE.replace("{% RESULTS_SECTION %}", res_html)
 
+# An extra route for apps/mobile to get data without the website design
 @app.post("/predict_ride")
 def get_quote(start_lat: float, start_lon: float, end_lat: float, end_lon: float, hour: int, preference: str = "balanced"):
     try:
-        dist = round(np.sqrt((end_lat - start_lat)**2 + (end_lon - start_lon)**2) * 111, 2) [cite: 9]
-        recommendations = get_vehicle_recommendations(start_lat, start_lon, end_lat, end_lon, hour, preference) [cite: 18, 23]
+        dist = round(np.sqrt((end_lat - start_lat)**2 + (end_lon - start_lon)**2) * 111, 2)
+        recommendations = get_vehicle_recommendations(start_lat, start_lon, end_lat, end_lon, hour, preference)
         results = recommendations.to_dict(orient="records") if hasattr(recommendations, 'to_dict') else recommendations
         for r in results:
             r['distance'] = dist
@@ -154,5 +158,6 @@ def get_quote(start_lat: float, start_lon: float, end_lat: float, end_lon: float
     except Exception as e:
         return {"error": str(e)}
 
+# Start the server on port 8001
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8001)
